@@ -1,0 +1,42 @@
+---
+import Sitio from "../../layouts/Sitio.astro";
+import { miniPacks } from "../../data/catalogo";
+import { inicio, ramoUrl, miniPackUrl } from "../../lib/rutas";
+export function getStaticPaths() {
+  return miniPacks.map(pack => ({
+    params: { id: pack.id },
+    props: { pack }
+  }));
+}
+const { pack } = Astro.props;
+const hermanos = miniPacks.filter(p => p.ramo.codigo === pack.ramo.codigo);
+const posicion = hermanos.findIndex(p => p.id === pack.id);
+const anterior = hermanos[posicion - 1];
+const siguiente = hermanos[posicion + 1];
+---
+<Sitio title={pack.titulo + " | Buxef - Zero to Genius"} description={pack.descripcion || pack.titulo}>
+  <div class="container interior">
+    <nav class="breadcrumbs" aria-label="Ruta">
+      <a href={inicio()}>Inicio</a><span aria-hidden="true">/</span>
+      <a href={ramoUrl(pack.ramo.codigo)}>{pack.ramo.codigo}</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{pack.titulo}</span>
+    </nav>
+    <div class="course-header">
+      <span class="department">MINIPACK INTERACTIVO</span>
+      <h1>{pack.titulo}</h1>
+      <p>{pack.descripcion || pack.unidad.nombre}</p>
+    </div>
+    {pack.enlace ? (
+      <div class="feature-card"><div class="embed-ratio">
+        <iframe title={pack.titulo} src={pack.enlace} allow="fullscreen" allowfullscreen loading="lazy"></iframe>
+      </div></div>
+    ) : (
+      <section class="empty-state"><h2>MiniPack en preparación</h2></section>
+    )}
+    <nav class="pack-navigation" aria-label="Navegación entre miniPacks">
+      {anterior ? <a href={miniPackUrl(anterior.id)}>← {anterior.titulo}</a> : <span />}
+      <a href={ramoUrl(pack.ramo.codigo)}>Todas las lecciones</a>
+      {siguiente ? <a href={miniPackUrl(siguiente.id)}>{siguiente.titulo} →</a> : <span />}
+    </nav>
+  </div>
+</Sitio>

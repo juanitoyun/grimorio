@@ -1,0 +1,48 @@
+---
+import "../styles/global.css";
+import { inicio } from "../lib/rutas";
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = "✨Buxef - Zero to Genius✨",
+  description = "MiniPacks interactivos, organizados para aprender a tu ritmo. 🕹️ Gamifyⁱⁿᵍ FCFM"
+} = Astro.props;
+const home = inicio();
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="canonical" href={Astro.url.href} />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="nav-inner">
+        <a class="brand" href={home} aria-label="Buxef, inicio">
+          <span class="brand-symbol" aria-hidden="true">✨</span>
+          <span>
+            <strong>Buxef</strong>
+            <small>Gamifyⁱⁿᵍ FCFM</small>
+          </span>
+        </a>
+        <nav aria-label="Navegación principal" class="nav-actions">
+          <a href={home + "#asignaturas"}>Asignaturas</a>
+          <a href={home + "#destacado"}>Destacado</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="footer">
+      <span>✨ Buxef - Zero to Genius</span>
+      <span>Proyecto independiente · FCFM · Biblioteca abierta</span>
+    </footer>
+  </body>
+</html>

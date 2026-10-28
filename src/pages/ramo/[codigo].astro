@@ -1,0 +1,49 @@
+---
+import Sitio from "../../layouts/Sitio.astro";
+import { ramos, type Ramo } from "../../data/catalogo";
+import { inicio, miniPackUrl } from "../../lib/rutas";
+
+export function getStaticPaths() {
+  return ramos.map(ramo => ({
+    params: { codigo: ramo.codigo },
+    props: { ramo }
+  }));
+}
+const { ramo } = Astro.props as { ramo: Ramo };
+---
+<Sitio title={ramo.nombre + " | Buxef - Zero to Genius"} description={"Material interactivo de " + ramo.nombre + " (" + ramo.codigo + ") en Buxef."}>
+  <div class="container interior">
+    <nav class="breadcrumbs" aria-label="Ruta">
+      <a href={inicio()}>Inicio</a><span aria-hidden="true">/</span>
+      <a href={inicio() + "#asignaturas"}>Plan Común</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{ramo.codigo}</span>
+    </nav>
+    <div class="course-header">
+      <span class={"department " + (ramo.departamento === "DIM" ? "dim" : "dfi")}>{ramo.departamento === "DIM" ? "📕" : "📘"} {ramo.departamento}</span>
+      <h1>{ramo.nombre}</h1>
+      <p>{ramo.codigo} · Plan Común FCFM</p>
+    </div>
+    {ramo.unidades.length === 0 ? (
+      <section class="empty-state">
+        <span class="empty-illustration" aria-hidden="true">📚</span>
+        <h2>Material en preparación</h2>
+        <p>Esta asignatura ya tiene su espacio en Buxef. Próximamente encontrarás miniPacks para explorar.</p>
+        <a class="button-secondary" href={inicio() + "#asignaturas"}>← Volver a las asignaturas</a>
+      </section>
+    ) : (
+      <section class="units" aria-label="Unidades del ramo">
+        <h2>Unidades</h2>
+        {ramo.unidades.map((unidad, index) => (
+          <div class="unit-card">
+            <h3><span class="unit-num">{String(index + 1).padStart(2, "0")}</span> {unidad.nombre}</h3>
+            <div class="unit-packs">
+              {unidad.minipacks.map(pack => (
+                <a class="pack-link" href={miniPackUrl(pack.id)}><span>▶ {pack.titulo}</span><span>→</span></a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+    )}
+  </div>
+</Sitio>

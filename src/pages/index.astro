@@ -1,0 +1,116 @@
+---
+import Sitio from "../layouts/Sitio.astro";
+import { catalogo, ramos } from "../data/catalogo";
+import { ramoUrl } from "../lib/rutas";
+const cuenta = ramos.length;
+---
+<Sitio>
+  <div class="container">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="eyebrow"><span class="dot"></span> Biblioteca interactiva abierta</div>
+      <h1 id="hero-title">✨Buxef - Zero to Genius✨</h1>
+      <p class="tagline">🕹️ Gamifyⁱⁿᵍ FCFM</p>
+      <p class="hero-description">Encuentra lo que necesitas aprender. Explora asignaturas, descubre miniPacks y avanza a tu manera.</p>
+
+      <div class="search-area">
+        <label class="sr-only" for="courseSearch">Buscar asignaturas</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="courseSearch" type="search" placeholder="Buscar ramo, código o tema..." autocomplete="off" />
+        <span class="search-hint">DIM · DFI</span>
+      </div>
+      <div id="searchResults" class="search-results" hidden aria-live="polite">
+        {ramos.map(ramo => (
+          <a class="search-result" href={ramoUrl(ramo.codigo)} data-search-item data-search-text={ramo.codigo + " " + ramo.nombre + " " + ramo.departamento}>
+            <span class="book" aria-hidden="true">{ramo.departamento === "DIM" ? "📕" : "📘"}</span>
+            <span>{ramo.nombre} <small>{ramo.codigo}</small></span>
+            <span aria-hidden="true">→</span>
+          </a>
+        ))}
+        <p id="noResults" class="muted" hidden>No encontramos asignaturas con ese término.</p>
+      </div>
+    </section>
+
+    <section id="asignaturas" class="section-block" aria-labelledby="catalog-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-overline">EXPLORAR</p>
+          <h2 id="catalog-title">Árbol de asignaturas</h2>
+          <p class="muted">Expande solo las carpetas que necesites. Todo comienza cerrado.</p>
+        </div>
+        <span class="count">{cuenta} ramos</span>
+      </div>
+      <div class="tree-panel">
+        {catalogo.map(plan => (
+          <details class="tree-level level-plan">
+            <summary><span class="tree-title">📚 {plan.nombre}</span><span class="tree-meta">Explorar</span></summary>
+            <div class="tree-children">
+              {plan.anios.map(anio => (
+                <details class="tree-level level-year">
+                  <summary><span class="tree-title">📁 {anio.nombre}</span></summary>
+                  <div class="tree-children">
+                    {anio.semestres.map(semestre => (
+                      <details class="tree-level level-semester">
+                        <summary><span class="tree-title">📂 {semestre.nombre}</span></summary>
+                        <div class="tree-children">
+                          {semestre.ramos.map(ramo => (
+                            <div class="subject-row">
+                              <span class="subject-label"><span class="book" aria-hidden="true">{ramo.departamento === "DIM" ? "📕" : "📘"}</span><span>{ramo.nombre} <span class="code">{ramo.codigo}</span></span></span>
+                              <a class="material-link" href={ramoUrl(ramo.codigo)} aria-label={"Ver material de " + ramo.nombre}>Ver material <span aria-hidden="true">→</span></a>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+      <div class="legend"><span>📕 DIM · Matemáticas</span><span>📘 DFI · Física</span></div>
+    </section>
+
+    <section id="destacado" class="section-block" aria-labelledby="featured-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-overline">PARA EXPLORAR</p>
+          <h2 id="featured-title">Rincón interactivo</h2>
+          <p class="muted">Una experiencia creada en Genially, disponible sin salir de Buxef.</p>
+        </div>
+        <span class="pill">Genially</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-top"><strong>🎮 PokeCalendar</strong><span class="muted">Experiencia interactiva</span></div>
+        <div class="embed-ratio">
+          <iframe
+            title="PokeCalendar, experiencia interactiva de Genially"
+            src="https://view.genially.com/6a10d1def2e122d42063a78a"
+            loading="lazy"
+            allow="fullscreen"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+  </div>
+</Sitio>
+<script>
+  const campo = document.querySelector<HTMLInputElement>("#courseSearch");
+  const resultados = document.querySelector<HTMLElement>("#searchResults");
+  const opciones = Array.from(document.querySelectorAll<HTMLElement>("[data-search-item]"));
+  const vacio = document.querySelector<HTMLElement>("#noResults");
+  const limpiar = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  campo?.addEventListener("input", () => {
+    const q = limpiar(campo.value.trim());
+    if (resultados) resultados.hidden = q.length === 0;
+    let visibles = 0;
+    opciones.forEach(opcion => {
+      const coincide = limpiar(opcion.dataset.searchText || "").includes(q);
+      opcion.hidden = !coincide;
+      if (coincide) visibles++;
+    });
+    if (vacio) vacio.hidden = visibles > 0;
+  });
+</script>
