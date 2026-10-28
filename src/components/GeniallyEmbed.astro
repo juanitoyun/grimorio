@@ -1,0 +1,61 @@
+---
+interface Props {
+  titulo: string;
+  enlace: string;
+  descripcion?: string;
+}
+const { titulo, enlace, descripcion } = Astro.props;
+---
+<div class="genially-shell" data-genially-root data-src={enlace} data-title={titulo}>
+  <div class="genially-gate" data-genially-gate>
+    <div class="genially-gate-icon" aria-hidden="true">🎮</div>
+    <h3>{titulo}</h3>
+    {descripcion && <p class="genially-description">{descripcion}</p>}
+    <p class="genially-explain">El contenido multimedia está pausado para no interrumpir tu música.</p>
+    <div class="genially-actions">
+      <button type="button" class="genially-primary" data-genially-open>▶ Ver aquí</button>
+      <a class="genially-secondary" href={enlace} target="_blank" rel="noopener noreferrer">Abrir en otra pestaña ↗</a>
+    </div>
+    <small class="genially-caveat">Al visualizarlo aquí, el Genially podría activar audio.</small>
+  </div>
+  <div class="genially-live" data-genially-live hidden>
+    <div class="genially-controls">
+      <strong>🎮 {titulo}</strong>
+      <div class="genially-actions">
+        <button type="button" class="genially-secondary" data-genially-close>■ Cerrar reproductor</button>
+        <a class="genially-secondary" href={enlace} target="_blank" rel="noopener noreferrer">Abrir en otra pestaña ↗</a>
+      </div>
+    </div>
+    <div class="embed-ratio" data-genially-frame></div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>("[data-genially-root]").forEach(root => {
+    const gate = root.querySelector<HTMLElement>("[data-genially-gate]");
+    const live = root.querySelector<HTMLElement>("[data-genially-live]");
+    const frame = root.querySelector<HTMLElement>("[data-genially-frame]");
+    const open = root.querySelector<HTMLButtonElement>("[data-genially-open]");
+    const close = root.querySelector<HTMLButtonElement>("[data-genially-close]");
+
+    open?.addEventListener("click", () => {
+      const url = root.dataset.src;
+      if (!url || !frame) return;
+      const iframe = document.createElement("iframe");
+      iframe.title = root.dataset.title || "Genially interactivo";
+      iframe.src = url;
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("allow", "fullscreen");
+      iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+      frame.appendChild(iframe);
+      if (gate) gate.hidden = true;
+      if (live) live.hidden = false;
+    });
+
+    close?.addEventListener("click", () => {
+      frame?.replaceChildren(); // Desmonta el iframe y detiene su multimedia
+      if (live) live.hidden = true;
+      if (gate) gate.hidden = false;
+      open?.focus();
+    });
+  });
+</script>

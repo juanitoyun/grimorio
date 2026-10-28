@@ -8,7 +8,9 @@ Biblioteca independiente, abierta y experimental de miniPacks interactivos para 
 - Sin registro, cuentas, puntuaciones ni desbloqueos.
 - Organización navegable: Plan Común → año → semestre → ramo → unidad → miniPack.
 - Modo oscuro y navegación libre.
-- Presentaciones públicas incrustadas desde Genially; no se almacenan ZIP pesados en el repositorio.
+- Presentaciones públicas desde Genially con carga voluntaria: ningún iframe se inicia al abrir una página y se puede elegir entre ver dentro de Buxef o en otra pestaña.
+- No es posible imponer silencio al contenido de terceros desde el iframe; al abrirlo puede activar audio. Cerrarlo desmonta el reproductor.
+- No se almacenan ZIP pesados en el repositorio.
 - Un solo catálogo alimenta todas las páginas.
 
 ## Desarrollar localmente

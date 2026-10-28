@@ -1,5 +1,6 @@
 ---
 import Sitio from "../../layouts/Sitio.astro";
+import GeniallyEmbed from "../../components/GeniallyEmbed.astro";
 import { miniPacks } from "../../data/catalogo";
 import { inicio, ramoUrl, miniPackUrl } from "../../lib/rutas";
 export function getStaticPaths() {
@@ -27,9 +28,9 @@ const siguiente = hermanos[posicion + 1];
       <p>{pack.descripcion || pack.unidad.nombre}</p>
     </div>
     {pack.enlace ? (
-      <div class="feature-card"><div class="embed-ratio">
-        <iframe title={pack.titulo} src={pack.enlace} allow="fullscreen" allowfullscreen loading="lazy"></iframe>
-      </div></div>
+      <div class="feature-card">
+        <GeniallyEmbed titulo={pack.titulo} enlace={pack.enlace} descripcion={pack.descripcion} />
+      </div>
     ) : (
       <section class="empty-state"><h2>MiniPack en preparación</h2></section>
     )}

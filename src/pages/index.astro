@@ -1,5 +1,6 @@
 ---
 import Sitio from "../layouts/Sitio.astro";
+import GeniallyEmbed from "../components/GeniallyEmbed.astro";
 import { catalogo, ramos } from "../data/catalogo";
 import { ramoUrl } from "../lib/rutas";
 const cuenta = ramos.length;
@@ -81,17 +82,11 @@ const cuenta = ramos.length;
         <span class="pill">Genially</span>
       </div>
       <div class="feature-card">
-        <div class="feature-top"><strong>🎮 PokeCalendar</strong><span class="muted">Experiencia interactiva</span></div>
-        <div class="embed-ratio">
-          <iframe
-            title="PokeCalendar, experiencia interactiva de Genially"
-            src="https://view.genially.com/6a10d1def2e122d42063a78a"
-            loading="lazy"
-            allow="fullscreen"
-            allowfullscreen
-            referrerpolicy="strict-origin-when-cross-origin"
-          ></iframe>
-        </div>
+        <GeniallyEmbed
+          titulo="PokeCalendar"
+          descripcion="Explora esta experiencia interactiva a tu ritmo."
+          enlace="https://view.genially.com/6a10d1def2e122d42063a78a"
+        />
       </div>
     </section>
   </div>
