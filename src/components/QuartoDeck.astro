@@ -1,0 +1,174 @@
+---
+import type { MiniPack } from "../data/catalogo";
+interface Props {
+  diapositivas: MiniPack[];
+  sincronizarHash?: boolean;
+}
+const { diapositivas, sincronizarHash = false } = Astro.props;
+const inicial = diapositivas[0];
+---
+<div class="quarto-deck" data-quarto-deck data-sync-hash={sincronizarHash ? "true" : "false"}>
+  <div class="q-rail-heading">
+    <div>
+      <p class="q-overline">EYWA / REVEAL.JS</p>
+      <h2>Biblioteca de diapositivas</h2>
+      <span>{diapositivas.length} {diapositivas.length === 1 ? "presentación interactiva" : "capítulos interactivos"} · Código Python dentro de las slides</span>
+    </div>
+    <span class="q-live-label"><span aria-hidden="true">●</span> QUARTO</span>
+  </div>
+  {diapositivas.length > 1 && (
+    <nav class="q-chapter-rail" aria-label="Seleccionar capítulo">
+      {diapositivas.map((slide, i) => (
+        <button type="button" class:list={["q-chapter", { "is-active": i === 0 }]} data-quarto-chapter data-code={slide.id.slice(-2)} data-src={slide.enlace} data-title={slide.titulo} data-description={slide.descripcion || ""} aria-pressed={i === 0 ? "true" : "false"} aria-label={"Capítulo " + slide.id.slice(-2) + ": " + slide.titulo}>
+          <span class="q-chapter-number">{slide.id.slice(-2)}</span>
+          <span class="q-chapter-caption">{slide.titulo}</span>
+        </button>
+      ))}
+    </nav>
+  )}
+  {diapositivas.length === 1 && (
+    <div class="q-single-source" data-quarto-chapter data-code={inicial.id.slice(-2)} data-src={inicial.enlace} data-title={inicial.titulo} data-description={inicial.descripcion || ""}></div>
+  )}
+  <div class="q-player" data-quarto-player>
+    <div class="q-player-toolbar">
+      <div class="q-now">
+        <span class="q-now-index" data-quarto-index>{inicial.id.slice(-2)}</span>
+        <div><span>EN PANTALLA</span><strong data-quarto-title>{inicial.titulo}</strong></div>
+      </div>
+      <div class="q-player-actions">
+        {diapositivas.length > 1 && (
+          <>
+            <button type="button" data-quarto-prev aria-label="Anterior capítulo">← Anterior</button>
+            <button type="button" data-quarto-next aria-label="Siguiente capítulo">Siguiente →</button>
+          </>
+        )}
+        <button type="button" data-quarto-theater aria-pressed="false">⤢ Modo teatro</button>
+        <button type="button" data-quarto-fullscreen>⛶ Pantalla completa</button>
+        <button type="button" data-quarto-close hidden>■ Cerrar</button>
+      </div>
+    </div>
+    <div class="q-viewport">
+      <div class="q-splash" data-quarto-splash>
+        <div class="q-splash-grain" aria-hidden="true"></div>
+        <span class="q-splash-kicker">ALGORITMOS / DCC · FCFM</span>
+        <span class="q-splash-digit" data-quarto-watermark aria-hidden="true">{inicial.id.slice(-2)}</span>
+        <div class="q-splash-content">
+          <span class="q-splash-code">PRESENTACIÓN INTERACTIVA · <span data-quarto-index-alt>{inicial.id.slice(-2)}</span></span>
+          <h3 data-quarto-splash-title>{inicial.titulo}</h3>
+          <p data-quarto-description>{inicial.descripcion}</p>
+          <div class="q-splash-buttons">
+            <button type="button" class="q-start" data-quarto-start>▶ Iniciar presentación</button>
+            <a href={inicial.enlace} target="_blank" rel="noopener noreferrer" data-quarto-external>↗ Abrir en EYWA</a>
+          </div>
+          <small>El iframe y Python se cargan al iniciar. Usa las flechas de Reveal.js dentro de la presentación.</small>
+        </div>
+      </div>
+      <div class="q-frame-container" data-quarto-frame hidden></div>
+    </div>
+    <div class="q-player-footer">
+      <span>Quarto + Reveal.js · Laboratorios Python · <span data-quarto-counter>01 / {String(diapositivas.length).padStart(2, "0")}</span></span>
+      <a href={inicial.enlace} target="_blank" rel="noopener noreferrer" data-quarto-external>Vista independiente ↗</a>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>("[data-quarto-deck]").forEach(root => {
+    const chapters = Array.from(root.querySelectorAll<HTMLElement>("[data-quarto-chapter]"));
+    const frameHost = root.querySelector<HTMLElement>("[data-quarto-frame]");
+    const splash = root.querySelector<HTMLElement>("[data-quarto-splash]");
+    const startButton = root.querySelector<HTMLButtonElement>("[data-quarto-start]");
+    const prev = root.querySelector<HTMLButtonElement>("[data-quarto-prev]");
+    const next = root.querySelector<HTMLButtonElement>("[data-quarto-next]");
+    const theater = root.querySelector<HTMLButtonElement>("[data-quarto-theater]");
+    const fullscreen = root.querySelector<HTMLButtonElement>("[data-quarto-fullscreen]");
+    const close = root.querySelector<HTMLButtonElement>("[data-quarto-close]");
+    let current = 0;
+    let started = false;
+
+    const updateText = (selector: string, value: string) => {
+      root.querySelectorAll<HTMLElement>(selector).forEach(node => { node.textContent = value; });
+    };
+    const load = () => {
+      const lesson = chapters[current];
+      if (!frameHost || !lesson?.dataset.src) return;
+      frameHost.replaceChildren(); // desinstala la instancia Reveal/Pyodide anterior
+      const iframe = document.createElement("iframe");
+      iframe.src = lesson.dataset.src;
+      iframe.title = "EYWA · " + (lesson.dataset.title || "Quarto");
+      iframe.loading = "eager";
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("allow", "fullscreen; clipboard-write");
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+      frameHost.appendChild(iframe);
+      frameHost.hidden = false;
+      if (splash) splash.hidden = true;
+      if (close) close.hidden = false;
+      started = true;
+    };
+    const select = (index: number, sync = true) => {
+      if (index < 0 || index >= chapters.length) return;
+      current = index;
+      const lesson = chapters[index];
+      const code = lesson.dataset.code || "00";
+      chapters.forEach((node, i) => {
+        node.classList.toggle("is-active", i === index);
+        node.setAttribute("aria-pressed", i === index ? "true" : "false");
+      });
+      updateText("[data-quarto-index], [data-quarto-index-alt], [data-quarto-watermark]", code);
+      updateText("[data-quarto-title], [data-quarto-splash-title]", lesson.dataset.title || "Presentación");
+      updateText("[data-quarto-description]", lesson.dataset.description || "");
+      updateText("[data-quarto-counter]", String(index + 1).padStart(2, "0") + " / " + String(chapters.length).padStart(2, "0"));
+      root.querySelectorAll<HTMLAnchorElement>("[data-quarto-external]").forEach(a => {
+        a.href = lesson.dataset.src || "https://juanitoyun.github.io/eywa/";
+      });
+      if (prev) prev.disabled = index === 0;
+      if (next) next.disabled = index === chapters.length - 1;
+      if (started) load();
+      if (root.dataset.syncHash === "true" && sync) history.replaceState(null, "", "#" + code);
+    };
+
+    chapters.forEach((chapter, index) => {
+      if (chapter.tagName === "BUTTON") chapter.addEventListener("click", () => select(index));
+    });
+    startButton?.addEventListener("click", load);
+    prev?.addEventListener("click", () => select(current - 1));
+    next?.addEventListener("click", () => select(current + 1));
+    close?.addEventListener("click", () => {
+      frameHost?.replaceChildren();
+      if (frameHost) frameHost.hidden = true;
+      if (splash) splash.hidden = false;
+      if (close) close.hidden = true;
+      started = false;
+      startButton?.focus();
+    });
+    theater?.addEventListener("click", () => {
+      const enabled = root.classList.toggle("is-theater");
+      theater.textContent = enabled ? "↙ Salir del teatro" : "⤢ Modo teatro";
+      theater.setAttribute("aria-pressed", String(enabled));
+    });
+    fullscreen?.addEventListener("click", () => {
+      if (document.fullscreenElement) {
+        void document.exitFullscreen();
+      } else {
+        void root.requestFullscreen?.().catch(() => {
+          if (!root.classList.contains("is-theater")) theater?.click();
+        });
+      }
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && root.classList.contains("is-theater")) theater?.click();
+    });
+
+    const fromHash = () => chapters.findIndex(c => c.dataset.code === window.location.hash.slice(1));
+    if (root.dataset.syncHash === "true") {
+      const initial = fromHash();
+      select(initial >= 0 ? initial : 0, false);
+      window.addEventListener("hashchange", () => {
+        const selected = fromHash();
+        if (selected >= 0 && selected !== current) select(selected, false);
+      });
+    } else {
+      select(0, false);
+    }
+  });
+</script>
