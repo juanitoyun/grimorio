@@ -17,6 +17,14 @@ Biblioteca abierta y experimental para estudiar contenidos de la FCFM, creada so
 La dirección pública prevista del visor es:
 https://juanitoyun.github.io/grimorio/aula/CC3001/
 
+### Modo Código HD (nítido)
+
+El visor incluye **⌘ Código HD**: abre el laboratorio de la diapositiva actual en un editor a tamaño CSS real, fuera del escalado 1280×720 de Reveal.js, con controles **A− / A+** de 13 a 24 px. **← Volver a slides** conserva la diapositiva, y al volver a abrir el mismo laboratorio mantiene los cambios de esa instancia. El enlace **↗ Pestaña** sirve para abrir el código sin el contenedor de Buxef.
+
+Para detectar automáticamente qué laboratorio muestra Reveal.js, Buxef lee `Reveal.getCurrentSlide()` de la presentación incrustada. Esto funciona porque ambas aplicaciones comparten **el mismo origen web** (`https://juanitoyun.github.io`), aunque estén en subrutas `/grimorio` y `/eywa`. Si migran a dominios distintos, ese descubrimiento no funcionará por las restricciones de seguridad del navegador: el botón muestra un aviso y sigue disponible **Abrir en EYWA**.
+
+Solo se aceptan URL del mismo origen bajo el directorio `/eywa/labs/`. En una diapositiva sin laboratorio el botón muestra un aviso. El editor HD es una **instancia independiente**: no transfiere automáticamente las modificaciones hechas en la slide ni viceversa. Usa su mecanismo de guardado antes de cambiar de capítulo o ejemplo.
+
 Los iframes referencian el sitio independiente `https://juanitoyun.github.io/eywa/slides/*.html`. **Buxef no copia ni reproduce el código de EYWA**: lo presenta con permisos del navegador. Si EYWA no está publicado, cambia su URL, o el navegador bloquea la incrustación, se debe utilizar el botón **Abrir en EYWA**. No se afirma una comprobación visual externa de la publicación hasta probarla en un navegador.
 
 Los capítulos **00–02** tienen laboratorios específicos; algunos capítulos posteriores todavía son síntesis didácticas en evolución. La cobertura de fuentes se puede consultar en [EYWA / coverage](https://juanitoyun.github.io/eywa/coverage/index.html).
