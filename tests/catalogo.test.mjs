@@ -50,3 +50,25 @@ test("Rutas GitHub Pages bajo /grimorio y sala de CC3001", () => {
   assert.match(aula, /getStaticPaths/);
   assert.ok(existsSync(new URL("../src/pages/ramo/[codigo].astro", import.meta.url)));
 });
+
+test("Modo Código HD abre únicamente el laboratorio de la diapositiva activa", () => {
+  assert.match(viewer, /data-quarto-code/);
+  assert.match(viewer, /data-quarto-code-overlay/);
+  assert.match(viewer, /getCurrentSlide/);
+  assert.match(viewer, /slideUrl\.origin !== window\.location\.origin/);
+  assert.match(viewer, /labUrl\.origin === slideUrl\.origin/);
+  assert.match(viewer, /labUrl\.pathname\.startsWith\(labPrefix\)/);
+  assert.match(viewer, /labUrl\.protocol === "https:"/);
+  assert.match(viewer, /codeHost\.appendChild\(iframe\)/);
+  assert.match(viewer, /codeOverlay\.hidden = false/);
+  assert.match(viewer, /codeOverlay\.hidden = true/);
+  assert.match(viewer, /codeFontSize = Math\.min\(24/);
+  assert.match(viewer, /codeFontSize = Math\.max\(13/);
+  assert.match(viewer, /fontSize:\s*16|let codeFontSize = 16/);
+  assert.match(viewer, /codeExternal\.href = lab/);
+  assert.match(viewer, /resetCode\(\)/);
+  const styles = read("src/styles/global.css");
+  assert.match(styles, /\.q-code-overlay\{/);
+  assert.match(styles, /height:100dvh/);
+  assert.match(styles, /\.q-code-body iframe\{/);
+});

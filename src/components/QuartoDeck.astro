@@ -42,10 +42,12 @@ const inicial = diapositivas[0];
             <button type="button" data-quarto-next aria-label="Siguiente capítulo">Siguiente →</button>
           </>
         )}
+        <button type="button" data-quarto-code aria-label="Abrir editor Python de la diapositiva en alta legibilidad">⌘ Código HD</button>
         <button type="button" data-quarto-theater aria-pressed="false">⤢ Modo teatro</button>
         <button type="button" data-quarto-fullscreen>⛶ Pantalla completa</button>
         <button type="button" data-quarto-close hidden>■ Cerrar</button>
       </div>
+      <p class="q-code-feedback" role="status" aria-live="polite" data-quarto-code-feedback hidden></p>
     </div>
     <div class="q-viewport">
       <div class="q-splash" data-quarto-splash>
@@ -70,6 +72,23 @@ const inicial = diapositivas[0];
       <a href={inicial.enlace} target="_blank" rel="noopener noreferrer" data-quarto-external>Vista independiente ↗</a>
     </div>
   </div>
+  <section class="q-code-overlay" data-quarto-code-overlay role="dialog" aria-modal="true" aria-label="Editor Python en alta legibilidad" hidden>
+    <div class="q-code-bar">
+      <div class="q-code-heading">
+        <span class="q-code-symbol" aria-hidden="true">⌘</span>
+        <div><strong data-quarto-code-title>Editor Python · vista nítida</strong><small>Sin reducción de Reveal.js · Cambios de esta instancia independientes de las slides</small></div>
+      </div>
+      <div class="q-code-controls">
+        <button type="button" data-quarto-font-down aria-label="Reducir tamaño de letra">A−</button>
+        <span data-quarto-font-label aria-live="polite">16 px</span>
+        <button type="button" data-quarto-font-up aria-label="Aumentar tamaño de letra">A+</button>
+        <a href={inicial.enlace} target="_blank" rel="noopener noreferrer" data-quarto-code-external>↗ Pestaña</a>
+        <button type="button" class="q-code-return" data-quarto-code-close>← Volver a slides</button>
+      </div>
+    </div>
+    <div class="q-code-body" data-quarto-code-host></div>
+    <div class="q-code-foot">Editor independiente: los cambios no se copian automáticamente al editor incrustado. Usa las opciones de guardado del laboratorio antes de cambiar de ejemplo.</div>
+  </section>
 </div>
 <script>
   document.querySelectorAll<HTMLElement>("[data-quarto-deck]").forEach(root => {
@@ -82,12 +101,130 @@ const inicial = diapositivas[0];
     const theater = root.querySelector<HTMLButtonElement>("[data-quarto-theater]");
     const fullscreen = root.querySelector<HTMLButtonElement>("[data-quarto-fullscreen]");
     const close = root.querySelector<HTMLButtonElement>("[data-quarto-close]");
+    const codeButton = root.querySelector<HTMLButtonElement>("[data-quarto-code]");
+    const codeOverlay = root.querySelector<HTMLElement>("[data-quarto-code-overlay]");
+    const codeHost = root.querySelector<HTMLElement>("[data-quarto-code-host]");
+    const codeClose = root.querySelector<HTMLButtonElement>("[data-quarto-code-close]");
+    const codeExternal = root.querySelector<HTMLAnchorElement>("[data-quarto-code-external]");
+    const codeFeedback = root.querySelector<HTMLElement>("[data-quarto-code-feedback]");
+    const codeFontDown = root.querySelector<HTMLButtonElement>("[data-quarto-font-down]");
+    const codeFontUp = root.querySelector<HTMLButtonElement>("[data-quarto-font-up]");
     let current = 0;
+    let editorFrame: HTMLIFrameElement | null = null;
+    let currentLabUrl: string | null = null;
+    let codeFontSize = 16;
     let started = false;
 
     const updateText = (selector: string, value: string) => {
       root.querySelectorAll<HTMLElement>(selector).forEach(node => { node.textContent = value; });
     };
+    // Ambas aplicaciones están publicadas en juanitoyun.github.io (/grimorio y /eywa).
+    // Al compartir origen podemos leer la diapositiva Reveal activa sin alterar EYWA.
+    // No se inspeccionan ni incrustan URL arbitrarias: solo los laboratorios /labs/.
+    const activeLabUrl = (): string | null => {
+      const slideFrame = frameHost?.querySelector<HTMLIFrameElement>("iframe");
+      if (!slideFrame) return null;
+      try {
+        const slideUrl = new URL(slideFrame.src);
+        const slidePosition = slideUrl.pathname.lastIndexOf("/slides/");
+        if (slidePosition < 0 || slideUrl.origin !== window.location.origin) return null;
+        const revealWindow = slideFrame.contentWindow as (Window & {
+          Reveal?: { getCurrentSlide?: () => HTMLElement | null };
+        }) | null;
+        const activeSlide = revealWindow?.Reveal?.getCurrentSlide?.()
+          ?? revealWindow?.document.querySelector<HTMLElement>(".reveal .slides section.present");
+        const labIframe = activeSlide?.querySelector<HTMLIFrameElement>("iframe[src]");
+        const raw = labIframe?.getAttribute("src");
+        if (!raw) return null;
+        const labUrl = new URL(raw, slideFrame.src);
+        const labPrefix = slideUrl.pathname.slice(0, slidePosition) + "/labs/";
+        return labUrl.origin === slideUrl.origin &&
+          labUrl.protocol === "https:" &&
+          labUrl.pathname.startsWith(labPrefix) ? labUrl.href : null;
+      } catch {
+        // Si los dominios cambian y pasan a ser cross-origin, mostrar la alternativa EYWA.
+        return null;
+      }
+    };
+    const codeMessage = (message: string) => {
+      if (!codeFeedback) return;
+      codeFeedback.textContent = message;
+      codeFeedback.hidden = !message;
+    };
+    const closeCode = () => {
+      if (codeOverlay) codeOverlay.hidden = true;
+      // El iframe del editor queda montado: conserva el código al volver a abrirlo.
+      codeButton?.focus();
+    };
+    const resetCode = () => {
+      if (codeOverlay) codeOverlay.hidden = true;
+      codeHost?.replaceChildren();
+      editorFrame = null;
+      currentLabUrl = null;
+      codeMessage("");
+    };
+    const fontStyle = () => {
+      if (!editorFrame) return;
+      try {
+        const doc = editorFrame.contentDocument;
+        if (!doc) return;
+        let style = doc.getElementById("buxef-code-hd-style") as HTMLStyleElement | null;
+        if (!style) {
+          style = doc.createElement("style");
+          style.id = "buxef-code-hd-style";
+          doc.head.appendChild(style);
+        }
+        // Resalta código en tamaño CSS real; no usa transform: scale().
+        style.textContent = ".CodeMirror{font-size:" + codeFontSize +
+          "px!important;height:clamp(360px,62dvh,760px)!important}" +
+          "textarea{font-size:" + codeFontSize + "px!important;min-height:360px!important}";
+      } catch {
+        // La reproducción independiente funciona aunque la fuente cambie de origen.
+      }
+      root.querySelectorAll<HTMLElement>("[data-quarto-font-label]").forEach(
+        element => { element.textContent = codeFontSize + " px"; }
+      );
+    };
+    const openCode = () => {
+      const lab = activeLabUrl();
+      if (!lab) {
+        codeMessage("Esta diapositiva no contiene un editor accesible. Avanza a una con código o abre la presentación directamente en EYWA.");
+        return;
+      }
+      if (!codeHost || !codeOverlay) return;
+      codeMessage("");
+      if (currentLabUrl !== lab || !editorFrame) {
+        codeHost.replaceChildren();
+        const iframe = document.createElement("iframe");
+        iframe.src = lab;
+        iframe.title = "Editor Python EYWA a tamaño real";
+        iframe.setAttribute("allow", "clipboard-write");
+        iframe.referrerPolicy = "strict-origin-when-cross-origin";
+        iframe.addEventListener("load", fontStyle);
+        codeHost.appendChild(iframe);
+        editorFrame = iframe;
+        currentLabUrl = lab;
+      } else {
+        fontStyle();
+      }
+      root.querySelectorAll<HTMLElement>("[data-quarto-code-title]").forEach(
+        element => { element.textContent = "EYWA / " + (chapters[current]?.dataset.title || "Python") + " · Código HD"; }
+      );
+      if (codeExternal) codeExternal.href = lab;
+      codeOverlay.hidden = false;
+      codeClose?.focus();
+    };
+    codeButton?.addEventListener("click", openCode);
+    codeClose?.addEventListener("click", closeCode);
+    codeFontDown?.addEventListener("click", () => {
+      codeFontSize = Math.max(13, codeFontSize - 1);
+      fontStyle();
+    });
+    codeFontUp?.addEventListener("click", () => {
+      codeFontSize = Math.min(24, codeFontSize + 1);
+      fontStyle();
+    });
+
     const load = () => {
       const lesson = chapters[current];
       if (!frameHost || !lesson?.dataset.src) return;
@@ -107,6 +244,7 @@ const inicial = diapositivas[0];
     };
     const select = (index: number, sync = true) => {
       if (index < 0 || index >= chapters.length) return;
+      if (current !== index) resetCode();
       current = index;
       const lesson = chapters[index];
       const code = lesson.dataset.code || "00";
@@ -156,7 +294,9 @@ const inicial = diapositivas[0];
       }
     });
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape" && root.classList.contains("is-theater")) theater?.click();
+      if (e.key !== "Escape") return;
+      if (codeOverlay && !codeOverlay.hidden) { closeCode(); return; }
+      if (root.classList.contains("is-theater")) theater?.click();
     });
 
     const fromHash = () => chapters.findIndex(c => c.dataset.code === window.location.hash.slice(1));
