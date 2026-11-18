@@ -1,19 +1,19 @@
 ---
 import Sitio from "../../layouts/Sitio.astro";
 import GeniallyEmbed from "../../components/GeniallyEmbed.astro";
+import QuartoDeck from "../../components/QuartoDeck.astro";
 import { miniPacks } from "../../data/catalogo";
-import { inicio, ramoUrl, miniPackUrl } from "../../lib/rutas";
+import { inicio, ramoUrl, miniPackUrl, aulaUrl } from "../../lib/rutas";
+
 export function getStaticPaths() {
-  return miniPacks.map(pack => ({
-    params: { id: pack.id },
-    props: { pack }
-  }));
+  return miniPacks.map(pack => ({ params: { id: pack.id }, props: { pack } }));
 }
 const { pack } = Astro.props;
 const hermanos = miniPacks.filter(p => p.ramo.codigo === pack.ramo.codigo);
 const posicion = hermanos.findIndex(p => p.id === pack.id);
 const anterior = hermanos[posicion - 1];
 const siguiente = hermanos[posicion + 1];
+const esQuarto = pack.tipo === "quarto";
 ---
 <Sitio title={pack.titulo + " | Buxef - Zero to Genius"} description={pack.descripcion || pack.titulo}>
   <div class="container interior">
@@ -23,20 +23,30 @@ const siguiente = hermanos[posicion + 1];
       <span aria-current="page">{pack.titulo}</span>
     </nav>
     <div class="course-header">
-      <span class="department">MINIPACK INTERACTIVO</span>
+      <span class="department">{esQuarto ? "QUARTO / EYWA" : "MINIPACK INTERACTIVO"}</span>
       <h1>{pack.titulo}</h1>
       <p>{pack.descripcion || pack.unidad.nombre}</p>
     </div>
-    {pack.enlace ? (
-      <div class="feature-card">
-        <GeniallyEmbed titulo={pack.titulo} enlace={pack.enlace} descripcion={pack.descripcion} />
+    {esQuarto && (
+      <div class="minipack-aula-link">
+        <span>Este capítulo también pertenece al visor inmersivo de CC3001.</span>
+        <a class="aula-primary" href={aulaUrl(pack.ramo.codigo) + "#" + pack.id.slice(-2)}>Ver en Aula EYWA ↗</a>
       </div>
+    )}
+    {pack.enlace ? (
+      esQuarto ? (
+        <QuartoDeck diapositivas={[pack]} />
+      ) : (
+        <div class="feature-card">
+          <GeniallyEmbed titulo={pack.titulo} enlace={pack.enlace} descripcion={pack.descripcion} />
+        </div>
+      )
     ) : (
       <section class="empty-state"><h2>MiniPack en preparación</h2></section>
     )}
     <nav class="pack-navigation" aria-label="Navegación entre miniPacks">
       {anterior ? <a href={miniPackUrl(anterior.id)}>← {anterior.titulo}</a> : <span />}
-      <a href={ramoUrl(pack.ramo.codigo)}>Todas las lecciones</a>
+      <a href={esQuarto ? aulaUrl(pack.ramo.codigo) : ramoUrl(pack.ramo.codigo)}>{esQuarto ? "Aula EYWA" : "Todas las lecciones"}</a>
       {siguiente ? <a href={miniPackUrl(siguiente.id)}>{siguiente.titulo} →</a> : <span />}
     </nav>
   </div>

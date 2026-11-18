@@ -1,7 +1,7 @@
 ---
 import Sitio from "../../layouts/Sitio.astro";
 import { ramos, type Ramo } from "../../data/catalogo";
-import { inicio, miniPackUrl } from "../../lib/rutas";
+import { inicio, miniPackUrl, aulaUrl } from "../../lib/rutas";
 
 export function getStaticPaths() {
   return ramos.map(ramo => ({
@@ -10,40 +10,65 @@ export function getStaticPaths() {
   }));
 }
 const { ramo } = Astro.props as { ramo: Ramo };
+const tieneQuarto = ramo.unidades.some(unidad => unidad.minipacks.some(pack => pack.tipo === "quarto"));
+const emoji = { DIM: "📕", DFI: "📘", DCC: "💻" }[ramo.departamento];
 ---
 <Sitio title={ramo.nombre + " | Buxef - Zero to Genius"} description={"Material interactivo de " + ramo.nombre + " (" + ramo.codigo + ") en Buxef."}>
   <div class="container interior">
     <nav class="breadcrumbs" aria-label="Ruta">
       <a href={inicio()}>Inicio</a><span aria-hidden="true">/</span>
-      <a href={inicio() + "#asignaturas"}>Plan Común</a><span aria-hidden="true">/</span>
+      <a href={inicio() + "#asignaturas"}>{ramo.etapa}</a><span aria-hidden="true">/</span>
       <span aria-current="page">{ramo.codigo}</span>
     </nav>
     <div class="course-header">
-      <span class={"department " + (ramo.departamento === "DIM" ? "dim" : "dfi")}>{ramo.departamento === "DIM" ? "📕" : "📘"} {ramo.departamento}</span>
+      <span class:list={["department", ramo.departamento.toLowerCase()]}>{emoji} {ramo.departamento}</span>
       <h1>{ramo.nombre}</h1>
-      <p>{ramo.codigo} · Plan Común FCFM</p>
+      <p>{ramo.codigo} · {ramo.etapa} FCFM{ramo.creditos ? " · " + ramo.creditos + " créditos" : ""}</p>
     </div>
+
+    {tieneQuarto && (
+      <section class="course-quarto-feature" aria-labelledby="course-quarto-title">
+        <div class="course-quarto-copy">
+          <p class="section-overline">DISPONIBLE · AULA EYWA</p>
+          <h2 id="course-quarto-title">Aprende con código en movimiento.</h2>
+          <p>Presentaciones Quarto + Reveal.js que integran editores Python. Cambia de capítulo, navega entre diapositivas y utiliza la vista inmersiva.</p>
+          <a href={aulaUrl(ramo.codigo)} class="aula-primary">Abrir Aula EYWA <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="course-quarto-mark" aria-hidden="true"><span>CC</span><strong>3001</strong><small>ALGORITHMS / PYTHON</small></div>
+      </section>
+    )}
+
     {ramo.unidades.length === 0 ? (
       <section class="empty-state">
         <span class="empty-illustration" aria-hidden="true">📚</span>
-        <h2>Material en preparación</h2>
-        <p>Esta asignatura ya tiene su espacio en Buxef. Próximamente encontrarás miniPacks para explorar.</p>
+        <h2>Espacio de aprendizaje creado</h2>
+        <p>La asignatura ya figura en el catálogo. Aún no tiene material interactivo publicado en Buxef.</p>
+        {ramo.departamento === "DCC" && <p>Curso incorporado siguiendo la malla DCC 2019, no necesariamente la oferta vigente de este semestre.</p>}
         <a class="button-secondary" href={inicio() + "#asignaturas"}>← Volver a las asignaturas</a>
       </section>
     ) : (
       <section class="units" aria-label="Unidades del ramo">
-        <h2>Unidades</h2>
+        <div class="units-header">
+          <h2>Recorrido por unidades</h2>
+          {tieneQuarto && <a href={aulaUrl(ramo.codigo)}>Ver todos los capítulos en el aula ↗</a>}
+        </div>
         {ramo.unidades.map((unidad, index) => (
           <div class="unit-card">
             <h3><span class="unit-num">{String(index + 1).padStart(2, "0")}</span> {unidad.nombre}</h3>
             <div class="unit-packs">
               {unidad.minipacks.map(pack => (
-                <a class="pack-link" href={miniPackUrl(pack.id)}><span>▶ {pack.titulo}</span><span>→</span></a>
+                <a class="pack-link" href={miniPackUrl(pack.id)}>
+                  <span><span class="pack-icon" aria-hidden="true">{pack.tipo === "quarto" ? "◈" : "▶"}</span> {pack.titulo}</span>
+                  <span class="pack-meta">{pack.tipo === "quarto" ? "Quarto" : "MiniPack"} <span aria-hidden="true">→</span></span>
+                </a>
               ))}
             </div>
           </div>
         ))}
       </section>
+    )}
+    {ramo.departamento === "DCC" && (
+      <p class="aula-disclaimer">Referencia: <a href="https://dcc.uchile.cl/pregrado/malla/" target="_blank" rel="noopener noreferrer">malla curricular del DCC (2019)</a>. Buxef es un proyecto independiente de la FCFM.</p>
     )}
   </div>
 </Sitio>

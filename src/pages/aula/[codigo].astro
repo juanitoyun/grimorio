@@ -1,0 +1,64 @@
+---
+import Sitio from "../../layouts/Sitio.astro";
+import QuartoDeck from "../../components/QuartoDeck.astro";
+import { ramos, eywaSlides, type Ramo } from "../../data/catalogo";
+import { inicio, ramoUrl } from "../../lib/rutas";
+
+export function getStaticPaths() {
+  return ramos.filter(ramo => ramo.unidades.some(u => u.minipacks.some(p => p.tipo === "quarto")))
+    .map(ramo => ({ params: { codigo: ramo.codigo }, props: { ramo } }));
+}
+const { ramo } = Astro.props as { ramo: Ramo };
+---
+<Sitio title={"Aula EYWA · " + ramo.codigo + " | Buxef"} description={"Presentaciones Quarto interactivas de " + ramo.nombre + " en Buxef."}>
+  <div class="aula-width">
+    <nav class="breadcrumbs aula-breadcrumbs" aria-label="Ruta">
+      <a href={inicio()}>Inicio</a><span aria-hidden="true">/</span>
+      <a href={ramoUrl(ramo.codigo)}>{ramo.codigo}</a><span aria-hidden="true">/</span>
+      <span aria-current="page">Aula EYWA</span>
+    </nav>
+    <header class="aula-hero">
+      <div class="aula-intro">
+        <p class="aula-kicker"><span class="aula-pulse" aria-hidden="true"></span> DCC / LABORATORIO DE APRENDIZAJE</p>
+        <h1>El algoritmo cobra <em>vida.</em></h1>
+        <p class="aula-lead">Un recorrido visual por <strong>{ramo.nombre}</strong> ({ramo.codigo}). Quarto, Reveal.js y Python ejecutable, sin salir de Buxef.</p>
+        <div class="aula-hero-links">
+          <a href={ramoUrl(ramo.codigo)} class="aula-back">← Ficha de la asignatura</a>
+          <a href="https://juanitoyun.github.io/eywa/" target="_blank" rel="noopener noreferrer" class="aula-back">Explorar EYWA ↗</a>
+        </div>
+      </div>
+      <div class="aula-stats" aria-label="Contenido">
+        <div><strong>11</strong><span>capítulos</span></div>
+        <div><strong>00—10</strong><span>secuencia EYWA</span></div>
+        <div><strong>PY</strong><span>código interactivo</span></div>
+      </div>
+    </header>
+
+    <QuartoDeck diapositivas={eywaSlides} sincronizarHash />
+
+    <section class="aula-extras" aria-labelledby="aula-extras-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-overline">EXPLORAR MÁS</p>
+          <h2 id="aula-extras-title">Del concepto a la ejecución</h2>
+          <p class="muted">Los ejercicios se abren directamente en EYWA para conservar toda su funcionalidad.</p>
+        </div>
+      </div>
+      <div class="aula-resource-grid">
+        <a class="aula-resource" href="https://juanitoyun.github.io/eywa/labs/tutorial00/index.html?ex=01" target="_blank" rel="noopener noreferrer">
+          <span>01 / VISUALIZAR</span><strong>Arreglos y estructuras</strong>
+          <p>Ejemplo visual del tutorial inicial.</p><b aria-hidden="true">↗</b>
+        </a>
+        <a class="aula-resource" href="https://juanitoyun.github.io/eywa/labs/math02.html?ex=01" target="_blank" rel="noopener noreferrer">
+          <span>02 / EXPERIMENTAR</span><strong>Análisis matemático</strong>
+          <p>Ejecuta Python y compara órdenes de crecimiento.</p><b aria-hidden="true">↗</b>
+        </a>
+        <a class="aula-resource" href="https://juanitoyun.github.io/eywa/coverage/index.html" target="_blank" rel="noopener noreferrer">
+          <span>03 / AUDITAR</span><strong>Cobertura del temario</strong>
+          <p>Consulta qué material ha sido adaptado y qué falta.</p><b aria-hidden="true">↗</b>
+        </a>
+      </div>
+      <p class="aula-disclaimer">Buxef y EYWA son proyectos independientes de aprendizaje. La organización académica toma como referencia la <a href="https://dcc.uchile.cl/pregrado/malla/" target="_blank" rel="noopener noreferrer">malla del DCC</a>; no son plataformas oficiales de la Universidad de Chile. Algunas presentaciones de EYWA continúan en desarrollo.</p>
+    </section>
+  </div>
+</Sitio>

@@ -1,9 +1,10 @@
 ---
 import Sitio from "../layouts/Sitio.astro";
 import GeniallyEmbed from "../components/GeniallyEmbed.astro";
-import { catalogo, ramos } from "../data/catalogo";
-import { ramoUrl } from "../lib/rutas";
+import { catalogo, ramos, type Departamento } from "../data/catalogo";
+import { ramoUrl, aulaUrl } from "../lib/rutas";
 const cuenta = ramos.length;
+const icono: Record<Departamento, string> = { DIM: "📕", DFI: "📘", DCC: "💻" };
 ---
 <Sitio>
   <div class="container">
@@ -11,23 +12,41 @@ const cuenta = ramos.length;
       <div class="eyebrow"><span class="dot"></span> Biblioteca interactiva abierta</div>
       <h1 id="hero-title">✨Buxef - Zero to Genius✨</h1>
       <p class="tagline">🕹️ Gamifyⁱⁿᵍ FCFM</p>
-      <p class="hero-description">Encuentra lo que necesitas aprender. Explora asignaturas, descubre miniPacks y avanza a tu manera.</p>
+      <p class="hero-description">Encuentra lo que necesitas aprender. Desde Plan Común hasta la especialidad de Computación, con presentaciones y laboratorios interactivos.</p>
 
       <div class="search-area">
         <label class="sr-only" for="courseSearch">Buscar asignaturas</label>
         <span class="search-icon" aria-hidden="true">⌕</span>
         <input id="courseSearch" type="search" placeholder="Buscar ramo, código o tema..." autocomplete="off" />
-        <span class="search-hint">DIM · DFI</span>
+        <span class="search-hint">DIM · DFI · DCC</span>
       </div>
       <div id="searchResults" class="search-results" hidden aria-live="polite">
         {ramos.map(ramo => (
           <a class="search-result" href={ramoUrl(ramo.codigo)} data-search-item data-search-text={ramo.codigo + " " + ramo.nombre + " " + ramo.departamento}>
-            <span class="book" aria-hidden="true">{ramo.departamento === "DIM" ? "📕" : "📘"}</span>
+            <span class="book" aria-hidden="true">{icono[ramo.departamento]}</span>
             <span>{ramo.nombre} <small>{ramo.codigo}</small></span>
             <span aria-hidden="true">→</span>
           </a>
         ))}
         <p id="noResults" class="muted" hidden>No encontramos asignaturas con ese término.</p>
+      </div>
+    </section>
+
+    <section id="aula-eywa" class="aula-promo" aria-labelledby="aula-promo-title">
+      <div class="aula-promo-art" aria-hidden="true">
+        <span class="aula-promo-glow"></span>
+        <span class="aula-promo-terminal">&gt; import algorithms<span class="aula-promo-cursor">_</span></span>
+        <span class="aula-promo-orbit orbit-a">O(n log n)</span>
+        <span class="aula-promo-orbit orbit-b">{'{'} 0, 1, 2 {'}'}</span>
+      </div>
+      <div class="aula-promo-info">
+        <p class="section-overline">AULA DESTACADA · CC3001</p>
+        <h2 id="aula-promo-title">La teoría se vuelve interactiva.</h2>
+        <p>Explora las 11 presentaciones Quarto de Algoritmos y Estructuras de Datos en un visor inmersivo con laboratorios Python integrados.</p>
+        <div class="aula-promo-actions">
+          <a class="aula-primary" href={aulaUrl("CC3001")}>Entrar al Aula EYWA <span aria-hidden="true">↗</span></a>
+          <span>Quarto · Reveal.js · Pyodide</span>
+        </div>
       </div>
     </section>
 
@@ -55,7 +74,7 @@ const cuenta = ramos.length;
                         <div class="tree-children">
                           {semestre.ramos.map(ramo => (
                             <div class="subject-row">
-                              <span class="subject-label"><span class="book" aria-hidden="true">{ramo.departamento === "DIM" ? "📕" : "📘"}</span><span>{ramo.nombre} <span class="code">{ramo.codigo}</span></span></span>
+                              <span class="subject-label"><span class="book" aria-hidden="true">{icono[ramo.departamento]}</span><span>{ramo.nombre} <span class="code">{ramo.codigo}</span></span></span>
                               <a class="material-link" href={ramoUrl(ramo.codigo)} aria-label={"Ver material de " + ramo.nombre}>Ver material <span aria-hidden="true">→</span></a>
                             </div>
                           ))}
@@ -69,7 +88,7 @@ const cuenta = ramos.length;
           </details>
         ))}
       </div>
-      <div class="legend"><span>📕 DIM · Matemáticas</span><span>📘 DFI · Física</span></div>
+      <div class="legend"><span>📕 DIM · Matemáticas</span><span>📘 DFI · Física</span><span>💻 DCC · Computación</span><a href="https://dcc.uchile.cl/pregrado/malla/" target="_blank" rel="noopener noreferrer">Malla de referencia (2019) ↗</a></div>
     </section>
 
     <section id="destacado" class="section-block" aria-labelledby="featured-title">

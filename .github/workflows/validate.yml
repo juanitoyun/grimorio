@@ -1,0 +1,31 @@
+name: Validar catálogo y Aula EYWA
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Comprobar catálogo y visor
+        run: npm test
+      - name: Generar sitio Astro
+        run: npm run build
+      - name: Verificar rutas generadas
+        run: |
+          test -f dist/index.html
+          test -f dist/ramo/CC3001/index.html
+          test -f dist/aula/CC3001/index.html
+          test -f dist/minipack/cc3001-00/index.html
+          test -f dist/minipack/cc3001-10/index.html
+          test -f dist/ramo/CC5402/index.html
