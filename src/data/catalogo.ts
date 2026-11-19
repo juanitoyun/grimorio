@@ -41,7 +41,7 @@ const ramo = (
 ): Ramo => ({ codigo, nombre, departamento, creditos, etapa, unidades: [] });
 
 const EYWA = "https://juanitoyun.github.io/eywa/slides/";
-/** Las 11 presentaciones publicadas por el proyecto EYWA (00 a 10). */
+/** 11 capítulos EYWA (00 a 10) y simulacro práctico C2. */
 export const eywaSlides: MiniPack[] = [
   { id: "cc3001-00", titulo: "Herramientas visuales", descripcion: "Arreglos, listas y árboles con Python.", tipo: "quarto", enlace: EYWA + "00-herramientas-visuales.html" },
   { id: "cc3001-01", titulo: "Introducción", descripcion: "Python, invariantes y recursividad.", tipo: "quarto", enlace: EYWA + "01-introduccion.html" },
@@ -53,7 +53,8 @@ export const eywaSlides: MiniPack[] = [
   { id: "cc3001-07", titulo: "Ordenación", descripcion: "Algoritmos de ordenación y sus costos.", tipo: "quarto", enlace: EYWA + "07-ordenacion.html" },
   { id: "cc3001-08", titulo: "Búsqueda en texto", descripcion: "Coincidencia de patrones y KMP.", tipo: "quarto", enlace: EYWA + "08-busqueda-texto.html" },
   { id: "cc3001-09", titulo: "Compresión de datos", descripcion: "Codificación y compresión.", tipo: "quarto", enlace: EYWA + "09-compresion.html" },
-  { id: "cc3001-10", titulo: "Grafos", descripcion: "BFS, DFS y caminos óptimos.", tipo: "quarto", enlace: EYWA + "10-grafos.html" }
+  { id: "cc3001-10", titulo: "Grafos", descripcion: "BFS, DFS y caminos óptimos.", tipo: "quarto", enlace: EYWA + "10-grafos.html" },
+  { id: "cc3001-c2", titulo: "Práctica Control 2", descripcion: "9 problemas Python con autocorrección y trazas interactivas.", tipo: "quarto", enlace: EYWA + "c2-practica.html" }
 ];
 
 const algoritmos: Ramo = {
@@ -62,7 +63,8 @@ const algoritmos: Ramo = {
     { nombre: "01 · Fundamentos y análisis", minipacks: eywaSlides.slice(0, 3) },
     { nombre: "02 · Diseño y estructuras", minipacks: eywaSlides.slice(3, 6) },
     { nombre: "03 · Diccionarios y búsqueda", minipacks: eywaSlides.slice(6, 9) },
-    { nombre: "04 · Compresión y grafos", minipacks: eywaSlides.slice(9, 11) }
+    { nombre: "04 · Compresión y grafos", minipacks: eywaSlides.slice(9, 11) },
+    { nombre: "05 · Preparación de controles", minipacks: eywaSlides.slice(11) }
   ]
 };
 

@@ -72,3 +72,13 @@ test("Modo Código HD abre únicamente el laboratorio de la diapositiva activa",
   assert.match(styles, /height:100dvh/);
   assert.match(styles, /\.q-code-body iframe\{/);
 });
+
+
+test("Práctica C2 enlazada desde el catálogo y el aula CC3001", () => {
+  assert.match(catalogo, /id: "cc3001-c2"/);
+  assert.match(catalogo, /c2-practica\.html/);
+  assert.match(catalogo, /Preparación de controles/);
+  assert.match(catalogo, /eywaSlides\.slice\(11\)/);
+  assert.match(aula, /eywa\/labs\/c2-practica\.html/);
+  assert.match(aula, /11 \+ C2/);
+});
